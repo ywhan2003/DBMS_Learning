@@ -17,14 +17,19 @@ class DBConn:
             return True
 
     def book_id_exist(self, store_id, book_id):
-        db = self.client
+        db = self.client.bookstore
+        users_col = db.books
+        result = list(users_col.find({"store_id": store_id, "book_id": book_id}))
+        if len(result) == 0:
+            return False
+        else:
+            return True
 
     def store_id_exist(self, store_id):
-        cursor = self.conn.execute(
-            "SELECT store_id FROM user_store WHERE store_id = ?;", (store_id,)
-        )
-        row = cursor.fetchone()
-        if row is None:
+        db = self.client.bookstore
+        users_col = db.stores
+        result = list(users_col.find({"store_id": store_id}))
+        if len(result) == 0:
             return False
         else:
             return True
