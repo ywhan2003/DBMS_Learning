@@ -3,7 +3,10 @@ from be.model import store
 
 class DBConn:
     def __init__(self):
-        self.conn = store.get_db_conn()
+        host = '127.0.0.1'
+        port = 27017
+        store1 = store(host, port)
+        self.client = store1.get_db_client()
 
     def user_id_exist(self, user_id):
         cursor = self.conn.execute(
