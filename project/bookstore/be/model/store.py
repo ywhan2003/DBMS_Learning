@@ -3,7 +3,8 @@ import os
 import sqlite3 as sqlite
 import pymongo
 
-
+host = '127.0.0.1'
+port = 27017
 class Store:
     database: str
     host: str
@@ -20,11 +21,13 @@ class Store:
 database_instance: Store = None
 
 
-def init_database(db_path):
+def init_database():
     global database_instance
-    database_instance = Store(db_path)
+    global host
+    global port
+    database_instance = Store(host, port)
 
 
-def get_db_conn():
+def get_db_client():
     global database_instance
-    return database_instance.get_db_conn()
+    return database_instance.get_db_client()
