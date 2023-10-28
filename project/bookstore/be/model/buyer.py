@@ -7,8 +7,12 @@ from be.model import error
 
 
 class Buyer(db_conn.DBConn):
+    
+
     def __init__(self):
         db_conn.DBConn.__init__(self)
+        self.db = db_conn.DBConn.client.bookstore
+        self.users_col = self.db.users
 
     def new_order(
         self, user_id: str, store_id: str, id_and_count: [(str, int)]
@@ -22,29 +26,34 @@ class Buyer(db_conn.DBConn):
             uid = "{}_{}_{}".format(user_id, store_id, str(uuid.uuid1()))
 
             for book_id, count in id_and_count:
-                cursor = self.conn.execute(
-                    "SELECT book_id, stock_level, book_info FROM store "
-                    "WHERE store_id = ? AND book_id = ?;",
-                    (store_id, book_id),
-                )
-                row = cursor.fetchone()
-                if row is None:
+                # cursor = self.conn.execute(
+                #     "SELECT book_id, stock_level, book_info FROM store "
+                #     "WHERE store_id = ? AND book_id = ?;",
+                #     (store_id, book_id),
+                # )
+                users_col = self.db.stores
+                result = users_col.find({"store_id": store_id, "book_id": book_id})
+                if len(list(result)) == 0:
                     return error.error_non_exist_book_id(book_id) + (order_id,)
 
-                stock_level = row[1]
-                book_info = row[2]
+                stock_level = result["stock_level"]
+                book_info = result["book_info"]
                 book_info_json = json.loads(book_info)
                 price = book_info_json.get("price")
 
                 if stock_level < count:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
-                cursor = self.conn.execute(
-                    "UPDATE store set stock_level = stock_level - ? "
-                    "WHERE store_id = ? and book_id = ? and stock_level >= ?; ",
-                    (count, store_id, book_id, count),
-                )
-                if cursor.rowcount == 0:
+                # cursor = self.conn.execute(
+                #     "UPDATE store set stock_level = stock_level - ? "
+                #     "WHERE store_id = ? and book_id = ? and stock_level >= ?; ",
+                #     (count, store_id, book_id, count),
+                # )
+
+                condition = {"store_id": store_id, "book_id": book_id, "stock_level": {"$gte": count}}
+                users_col.update_one(condition, {"$set": {"stock_level": {"$inc": -count}}})
+                result = list(self.users_col.find(condition))
+                if len(result) == 0:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
                 self.conn.execute(

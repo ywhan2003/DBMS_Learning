@@ -8,6 +8,8 @@ class Seller(db_conn.DBConn):
 
     def __init__(self):
         db_conn.DBConn.__init__(self)
+        self.db = db_conn.DBConn.client.bookstore
+        self.users_col = self.db.users
 
     def add_book(
         self,

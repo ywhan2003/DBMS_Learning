@@ -35,11 +35,12 @@ def jwt_decode(encoded_token, user_id: str) -> str:
 
 class User(db_conn.DBConn):
     token_lifetime: int = 3600  # 3600 second
-    db = db_conn.client.bookstore
-    users_col = db.users
+    
 
     def __init__(self):
         db_conn.DBConn.__init__(self)
+        self.db = db_conn.DBConn.client.bookstore
+        self.users_col = self.db.users
 
     def __check_token(self, user_id, db_token, token) -> bool:
         try:
