@@ -56,18 +56,34 @@ class Buyer(db_conn.DBConn):
                 if len(result) == 0:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
-                self.conn.execute(
-                    "INSERT INTO new_order_detail(order_id, book_id, count, price) "
-                    "VALUES(?, ?, ?, ?);",
-                    (uid, book_id, count, price),
-                )
+                # self.conn.execute(
+                #     "INSERT INTO new_order_detail(order_id, book_id, count, price) "
+                #     "VALUES(?, ?, ?, ?);",
+                #     (uid, book_id, count, price),
+                # )
 
-            self.conn.execute(
-                "INSERT INTO new_order(order_id, store_id, user_id) "
-                "VALUES(?, ?, ?);",
-                (uid, store_id, user_id),
-            )
-            self.conn.commit()
+                users_col = self.db.new_order_detail
+                value = {
+                    "order_id": uid,
+                    "book_id": book_id,
+                    "count": count,
+                    "price": price
+                }
+                users_col.insert_one(value)
+
+            # self.conn.execute(
+            #     "INSERT INTO new_order(order_id, store_id, user_id) "
+            #     "VALUES(?, ?, ?);",
+            #     (uid, store_id, user_id),
+            # )
+            users_col = self.db.new_order
+            value = {
+                "order_id": uid,
+                "store_id": store_id,
+                "user_id": user_id
+            }
+            users_col.insert_one(value)
+            
             order_id = uid
         except sqlite.Error as e:
             logging.info("528, {}".format(str(e)))
@@ -81,40 +97,48 @@ class Buyer(db_conn.DBConn):
     def payment(self, user_id: str, password: str, order_id: str) -> (int, str):
         conn = self.conn
         try:
-            cursor = conn.execute(
-                "SELECT order_id, user_id, store_id FROM new_order WHERE order_id = ?",
-                (order_id,),
-            )
-            row = cursor.fetchone()
-            if row is None:
+            # cursor = conn.execute(
+            #     "SELECT order_id, user_id, store_id FROM new_order WHERE order_id = ?",
+            #     (order_id,),
+            # )
+            users_col = self.db.new_order
+            result = users_col.find({"order_id": order_id})
+
+            if len(list(result)) == 0:
                 return error.error_invalid_order_id(order_id)
 
-            order_id = row[0]
-            buyer_id = row[1]
-            store_id = row[2]
+            order_id = result["order_id"]
+            buyer_id = result["buyer_id"]
+            store_id = result["store_id"]
 
             if buyer_id != user_id:
                 return error.error_authorization_fail()
 
-            cursor = conn.execute(
-                "SELECT balance, password FROM user WHERE user_id = ?;", (buyer_id,)
-            )
-            row = cursor.fetchone()
-            if row is None:
+            # cursor = conn.execute(
+            #     "SELECT balance, password FROM user WHERE user_id = ?;", (buyer_id,)
+            # )
+            users_col = self.db.users
+            result = users_col.find({"user_id": buyer_id})
+ 
+            if len(list(result)) == 0:
                 return error.error_non_exist_user_id(buyer_id)
-            balance = row[0]
-            if password != row[1]:
+            balance = result["balance"]
+
+            if password != result["password"]:
                 return error.error_authorization_fail()
 
             cursor = conn.execute(
                 "SELECT store_id, user_id FROM user_store WHERE store_id = ?;",
                 (store_id,),
             )
-            row = cursor.fetchone()
-            if row is None:
+
+            users_col = self.db.user_store
+            result = users_col.find({"store_id": store_id})
+
+            if len(list(result)) == 0:
                 return error.error_non_exist_store_id(store_id)
 
-            seller_id = row[1]
+            seller_id = result["user_id"]
 
             if not self.user_id_exist(seller_id):
                 return error.error_non_exist_user_id(seller_id)
@@ -123,44 +147,80 @@ class Buyer(db_conn.DBConn):
                 "SELECT book_id, count, price FROM new_order_detail WHERE order_id = ?;",
                 (order_id,),
             )
+
+            users_col = self.db.new_order_detail
+            result = users_col.find({"order_id": order_id})
+
+            
             total_price = 0
-            for row in cursor:
-                count = row[1]
-                price = row[2]
+            for row in result:
+                count = row["count"]
+                price = row["price"]
                 total_price = total_price + price * count
 
             if balance < total_price:
                 return error.error_not_sufficient_funds(order_id)
 
-            cursor = conn.execute(
-                "UPDATE user set balance = balance - ?"
-                "WHERE user_id = ? AND balance >= ?",
-                (total_price, buyer_id, total_price),
-            )
-            if cursor.rowcount == 0:
+            # cursor = conn.execute(
+            #     "UPDATE user set balance = balance - ?"
+            #     "WHERE user_id = ? AND balance >= ?",
+            #     (total_price, buyer_id, total_price),
+            # )
+
+            users_col = self.db.users
+            condition = {
+                "user_id": buyer_id, 
+                "balance": {"$gte": total_price}
+            }
+            result = users_col.find(condition)
+
+            if len(list(result)) == 0:
                 return error.error_not_sufficient_funds(order_id)
+            
+            users_col.update_many(condition, {"inc": {"balance": -total_price}})
 
-            cursor = conn.execute(
-                "UPDATE user set balance = balance + ?" "WHERE user_id = ?",
-                (total_price, buyer_id),
-            )
+            # cursor = conn.execute(
+            #     "UPDATE user set balance = balance + ?" "WHERE user_id = ?",
+            #     (total_price, buyer_id),
+            # )
 
-            if cursor.rowcount == 0:
+           
+            condition = {
+                "user_id": buyer_id, 
+            }
+            result = users_col.find(condition)
+
+            if len(list(result)) == 0:
                 return error.error_non_exist_user_id(buyer_id)
+            
+            users_col.update_one(condition, {"$inc": {"balance": total_price}})
 
             cursor = conn.execute(
                 "DELETE FROM new_order WHERE order_id = ?", (order_id,)
             )
-            if cursor.rowcount == 0:
+
+            users_col = self.db.new_order
+            condition = {
+                "order_id": order_id
+            }
+            result = users_col.find(condition)
+
+            if len(list(result)) == 0:
                 return error.error_invalid_order_id(order_id)
+            
+            users_col.delete_one(condition)
 
             cursor = conn.execute(
                 "DELETE FROM new_order_detail where order_id = ?", (order_id,)
             )
-            if cursor.rowcount == 0:
-                return error.error_invalid_order_id(order_id)
 
-            conn.commit()
+            users_col = self.db.new_order_detail
+            result = users_col.find(condition)
+
+            if len(list(result)) == 0:
+                return error.error_invalid_order_id(order_id)
+            
+            users_col.delete_one(condition)
 
         except sqlite.Error as e:
             return 528, "{}".format(str(e))
@@ -172,24 +232,29 @@ class Buyer(db_conn.DBConn):
 
     def add_funds(self, user_id, password, add_value) -> (int, str):
         try:
-            cursor = self.conn.execute(
-                "SELECT password  from user where user_id=?", (user_id,)
-            )
-            row = cursor.fetchone()
-            if row is None:
+            # cursor = self.conn.execute(
+            #     "SELECT password  from user where user_id=?", (user_id,)
+            # )
+
+            users_col = self.db.users
+            result = users_col.find({"user_id": user_id})
+            
+            if len(list(result)) == 0:
                 return error.error_authorization_fail()
 
-            if row[0] != password:
+            if result["password"] != password:
                 return error.error_authorization_fail()
 
             cursor = self.conn.execute(
                 "UPDATE user SET balance = balance + ? WHERE user_id = ?",
                 (add_value, user_id),
             )
-            if cursor.rowcount == 0:
+            if len(list(result)) == 0:
                 return error.error_non_exist_user_id(user_id)
+            
+            users_col.upgrade_one({"user_id": user_id}, {"$inc": {"balance": add_value}})
 
-            self.conn.commit()
+
         except sqlite.Error as e:
             return 528, "{}".format(str(e))
         except BaseException as e:
