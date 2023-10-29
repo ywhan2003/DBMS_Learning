@@ -8,7 +8,6 @@ class Seller(db_conn.DBConn):
 
     def __init__(self):
         db_conn.DBConn.__init__(self)
-        self.db = db_conn.DBConn.client.bookstore
         self.users_col = self.db.users
 
     def add_book(
@@ -27,8 +26,7 @@ class Seller(db_conn.DBConn):
             if self.book_id_exist(store_id, book_id):
                 return error.error_exist_book_id(book_id)
 
-            db = db_conn.client.bookstore
-            users_col = db.stores
+            users_col = self.db.stores
             
             store1 = {
                 "store_id": store_id,
@@ -54,8 +52,7 @@ class Seller(db_conn.DBConn):
             if not self.book_id_exist(store_id, book_id):
                 return error.error_non_exist_book_id(book_id)
             
-            db = db_conn.client.bookstore
-            users_col = db.stores
+            users_col = self.db.stores
             condition = {"store_id": store_id, "book_id": book_id}
             users_col.update_one(condition, {"$inc": {"stock_level": add_stock_level}})
 
@@ -72,8 +69,7 @@ class Seller(db_conn.DBConn):
             if self.store_id_exist(store_id):
                 return error.error_exist_store_id(store_id)
             
-            db = db_conn.client.bookstore
-            users_col = db.user_store
+            users_col = self.db.user_store
             # self.conn.execute(
             #     "INSERT into user_store(store_id, user_id)" "VALUES (?, ?)",
             #     (store_id, user_id),
