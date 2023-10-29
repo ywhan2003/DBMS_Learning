@@ -39,7 +39,6 @@ class User(db_conn.DBConn):
 
     def __init__(self):
         db_conn.DBConn.__init__(self)
-        self.db = db_conn.DBConn.client.bookstore
         self.users_col = self.db.users
 
     def __check_token(self, user_id, db_token, token) -> bool:
