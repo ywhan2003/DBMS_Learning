@@ -71,25 +71,25 @@ class BookDB:
         cursor = users_col.find().sort("book_id", pymongo.ASCENDING).skip(start).limit(size)
         for row in cursor:
             book = Book()
-            book.id = row[0]
-            book.title = row[1]
-            book.author = row[2]
-            book.publisher = row[3]
-            book.original_title = row[4]
-            book.translator = row[5]
-            book.pub_year = row[6]
-            book.pages = row[7]
-            book.price = row[8]
+            book.id = row["book_id"]
+            book.title = row["title"]
+            book.author = row["author"]
+            book.publisher = row["publisher"]
+            book.original_title = row["original_title"]
+            book.translator = row["translator"]
+            book.pub_year = row["pub_year"]
+            book.pages = row["pages"]
+            book.price = row["price"]
 
-            book.currency_unit = row[9]
-            book.binding = row[10]
-            book.isbn = row[11]
-            book.author_intro = row[12]
-            book.book_intro = row[13]
-            book.content = row[14]
-            tags = row[15]
+            book.currency_unit = row["current_unit"]
+            book.binding = row["binding"]
+            book.isbn = row["isbn"]
+            book.author_intro = row["author_intro"]
+            book.book_intro = row["book_intro"]
+            book.content = row["content"]
+            tags = row["tags"]
 
-            picture = row[16]
+            picture = row["picture"]
 
             for tag in tags.split("\n"):
                 if tag.strip() != "":
