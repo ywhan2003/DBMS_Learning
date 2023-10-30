@@ -4,14 +4,16 @@ import json
 import logging
 from be.model import db_conn
 from be.model import error
+from be.model import store
 
 
 class Buyer(db_conn.DBConn):
     
 
     def __init__(self):
-        db_conn.DBConn.__init__(self)
-        self.users_col = self.db.users
+        # db_conn.DBConn.__init__(self)
+        self.client = store.get_db_client()
+        self.db = self.client.bookstore
 
     def new_order(
         self, user_id: str, store_id: str, id_and_count: [(str, int)]
