@@ -57,7 +57,6 @@ class User(db_conn.DBConn):
 
     def register(self, user_id: str, password: str):
         try:
-            self.users_col.create_index([("user_id", 1)], unique=True)
             terminal = "terminal_{}".format(str(time.time()))
             token = jwt_encode(user_id, terminal)
     
@@ -69,15 +68,17 @@ class User(db_conn.DBConn):
                 "terminal": terminal
             } 
             result = self.users_col.insert_one(user1)
-        except sqlite.Error:
+        except Exception as e:
             return error.error_exist_user_id(user_id)
         return 200, "ok"
 
     def check_token(self, user_id: str, token: str) -> (int, str):
         # cursor = self.conn.execute("SELECT token from user where user_id=?", (user_id,))
         
+        token1 = None
         result = self.users_col.find({"user_id": user_id})
-        token1 = result["token"]
+        for each in result:
+            token1 = each["token"]
         
         if token1 is None:
             return error.error_authorization_fail()
@@ -90,8 +91,10 @@ class User(db_conn.DBConn):
         # cursor = self.conn.execute(
         #     "SELECT password from user where user_id=?", (user_id,)
         # )
+        password1 = None
         result = self.users_col.find({"user_id": user_id})
-        password1 = result["password"]
+        for each in result:
+            password1 = each["password"]
         
         if password1 is None:
             return error.error_authorization_fail()
@@ -137,7 +140,7 @@ class User(db_conn.DBConn):
                 return error.error_authorization_fail()
             
         except sqlite.Error as e:
-            return 528, "{}".format(str(e))
+            return 528, "{}".format(str(e)), ""
         except BaseException as e:
             return 530, "{}".format(str(e))
         return 200, "ok"
@@ -156,7 +159,7 @@ class User(db_conn.DBConn):
             else:
                 return error.error_authorization_fail()
         except sqlite.Error as e:
-            return 528, "{}".format(str(e))
+            return 528, "{}".format(str(e)), ""
         except BaseException as e:
             return 530, "{}".format(str(e))
         return 200, "ok"
@@ -183,7 +186,7 @@ class User(db_conn.DBConn):
                 return error.error_authorization_fail()
             
         except sqlite.Error as e:
-            return 528, "{}".format(str(e))
+            return 528, "{}".format(str(e)), ""
         except BaseException as e:
             return 530, "{}".format(str(e))
         return 200, "ok"

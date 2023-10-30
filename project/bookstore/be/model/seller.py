@@ -68,8 +68,8 @@ class Seller(db_conn.DBConn):
                 return error.error_non_exist_user_id(user_id)
             if self.store_id_exist(store_id):
                 return error.error_exist_store_id(store_id)
-            
             users_col = self.db.user_store
+
             # self.conn.execute(
             #     "INSERT into user_store(store_id, user_id)" "VALUES (?, ?)",
             #     (store_id, user_id),

@@ -35,8 +35,12 @@ class Buyer(db_conn.DBConn):
                 if len(list(result)) == 0:
                     return error.error_non_exist_book_id(book_id) + (order_id,)
 
-                stock_level = result["stock_level"]
-                book_info = result["book_info"]
+                stock_level = None
+                book_info = None
+                for each in result:
+                    stock_level = each["stock_level"]
+                    book_info = each["book_info"]
+                    
                 book_info_json = json.loads(book_info)
                 price = book_info_json.get("price")
 
@@ -100,15 +104,21 @@ class Buyer(db_conn.DBConn):
             #     "SELECT order_id, user_id, store_id FROM new_order WHERE order_id = ?",
             #     (order_id,),
             # )
+
+            order_id = None
+            buyer_id = None
+            store_id = None
+
             users_col = self.db.new_order
             result = users_col.find({"order_id": order_id})
 
             if len(list(result)) == 0:
                 return error.error_invalid_order_id(order_id)
 
-            order_id = result["order_id"]
-            buyer_id = result["buyer_id"]
-            store_id = result["store_id"]
+            for each in result:
+                order_id = each["order_id"]
+                buyer_id = each["buyer_id"]
+                store_id = each["store_id"]
 
             if buyer_id != user_id:
                 return error.error_authorization_fail()
@@ -121,15 +131,21 @@ class Buyer(db_conn.DBConn):
  
             if len(list(result)) == 0:
                 return error.error_non_exist_user_id(buyer_id)
-            balance = result["balance"]
+            
+            balance = None
+            password1 = None
 
-            if password != result["password"]:
+            for each in balance:
+                balance = each["balance"]
+                password1 = each["password"]
+
+            if password != password1:
                 return error.error_authorization_fail()
 
-            cursor = conn.execute(
-                "SELECT store_id, user_id FROM user_store WHERE store_id = ?;",
-                (store_id,),
-            )
+            # cursor = conn.execute(
+            #     "SELECT store_id, user_id FROM user_store WHERE store_id = ?;",
+            #     (store_id,),
+            # )
 
             users_col = self.db.user_store
             result = users_col.find({"store_id": store_id})
@@ -137,15 +153,18 @@ class Buyer(db_conn.DBConn):
             if len(list(result)) == 0:
                 return error.error_non_exist_store_id(store_id)
 
-            seller_id = result["user_id"]
+            seller_id = None
+
+            for each in result:
+                seller_id = each["user_id"]
 
             if not self.user_id_exist(seller_id):
                 return error.error_non_exist_user_id(seller_id)
 
-            cursor = conn.execute(
-                "SELECT book_id, count, price FROM new_order_detail WHERE order_id = ?;",
-                (order_id,),
-            )
+            # cursor = conn.execute(
+            #     "SELECT book_id, count, price FROM new_order_detail WHERE order_id = ?;",
+            #     (order_id,),
+            # )
 
             users_col = self.db.new_order_detail
             result = users_col.find({"order_id": order_id})
@@ -194,9 +213,9 @@ class Buyer(db_conn.DBConn):
             
             users_col.update_one(condition, {"$inc": {"balance": total_price}})
 
-            cursor = conn.execute(
-                "DELETE FROM new_order WHERE order_id = ?", (order_id,)
-            )
+            # cursor = conn.execute(
+            #     "DELETE FROM new_order WHERE order_id = ?", (order_id,)
+            # )
 
             users_col = self.db.new_order
             condition = {
@@ -209,9 +228,9 @@ class Buyer(db_conn.DBConn):
             
             users_col.delete_one(condition)
 
-            cursor = conn.execute(
-                "DELETE FROM new_order_detail where order_id = ?", (order_id,)
-            )
+            # cursor = conn.execute(
+            #     "DELETE FROM new_order_detail where order_id = ?", (order_id,)
+            # )
 
             users_col = self.db.new_order_detail
             result = users_col.find(condition)
@@ -241,13 +260,14 @@ class Buyer(db_conn.DBConn):
             if len(list(result)) == 0:
                 return error.error_authorization_fail()
 
-            if result["password"] != password:
-                return error.error_authorization_fail()
+            for each in result:
+                if each["password"] != password:
+                    return error.error_authorization_fail()
 
-            cursor = self.conn.execute(
-                "UPDATE user SET balance = balance + ? WHERE user_id = ?",
-                (add_value, user_id),
-            )
+            # cursor = self.conn.execute(
+            #     "UPDATE user SET balance = balance + ? WHERE user_id = ?",
+            #     (add_value, user_id),
+            # )
             if len(list(result)) == 0:
                 return error.error_non_exist_user_id(user_id)
             

@@ -26,6 +26,7 @@ def init_database():
     global host
     global port
     database_instance = Store(host, port)
+    get_db_client()
 
 
 def get_db_client():
