@@ -50,7 +50,7 @@ class BookDB:
         # row = cursor.fetchone()
         # return row[0]
         users_col = self.db.books
-        result = users_col.count_documents()
+        result = users_col.count_documents({})
         return result
 
 
@@ -81,7 +81,7 @@ class BookDB:
             book.pages = row["pages"]
             book.price = row["price"]
 
-            book.currency_unit = row["current_unit"]
+            # book.currency_unit = row["current_unit"]
             book.binding = row["binding"]
             book.isbn = row["isbn"]
             book.author_intro = row["author_intro"]

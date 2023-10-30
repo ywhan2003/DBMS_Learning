@@ -255,11 +255,12 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.users
             result = users_col.find({"user_id": user_id})
+            searching = list(result)
             
-            if len(list(result)) == 0:
+            if len(searching) == 0:
                 return error.error_authorization_fail()
 
-            for each in result:
+            for each in searching:
                 if each["password"] != password:
                     return error.error_authorization_fail()
 
@@ -267,11 +268,11 @@ class Buyer(db_conn.DBConn):
             #     "UPDATE user SET balance = balance + ? WHERE user_id = ?",
             #     (add_value, user_id),
             # )
-            if len(list(result)) == 0:
+            result = users_col.update_one({"user_id": user_id}, {"$inc": {"balance": add_value}})
+
+            if result.modified_count == 0:
                 return error.error_non_exist_user_id(user_id)
             
-            users_col.upgrade_one({"user_id": user_id}, {"$inc": {"balance": add_value}})
-
 
         except sqlite.Error as e:
             return 528, "{}".format(str(e))
