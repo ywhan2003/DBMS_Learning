@@ -268,12 +268,12 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.users
             result = users_col.find({"user_id": user_id})
-            cnt = result.count()
+            searching = list(result)
             
-            if cnt == 0:
+            if len(searching) == 0:
                 return error.error_authorization_fail()
 
-            for each in result:
+            for each in searching:
                 if each["password"] != password:
                     return error.error_authorization_fail()
 
