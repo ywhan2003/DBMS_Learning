@@ -48,3 +48,4 @@ class Buyer:
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
+        # return r.content # '{"message":"non exist user id test_add_funds_1aae7281-7746-11ee-ba42-089798e7766d"}'
