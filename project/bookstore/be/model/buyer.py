@@ -57,8 +57,10 @@ class Buyer(db_conn.DBConn):
                 # )
 
                 condition = {"store_id": store_id, "book_id": book_id, "stock_level": {"$gte": count}}
-                counting = users_col.update_one(condition, {"$inc": {"stock_level": -count}}).modified_count
-                if counting == 0:
+                result = users_col.update_one(condition, {"$inc": {"stock_level": -count}})
+
+                cnt = result.modified_count
+                if cnt == 0:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
                 # self.conn.execute(
@@ -106,15 +108,15 @@ class Buyer(db_conn.DBConn):
             #     (order_id,),
             # )
 
-            
             buyer_id = None
             store_id = None
 
             users_col = self.db.new_order
             result = users_col.find({"order_id": order_id})
             searching = list(result)
+            cnt = len(searching)
 
-            if len(searching) == 0:
+            if cnt == 0:
                 return error.error_invalid_order_id(order_id)
 
             for each in searching:
@@ -130,8 +132,9 @@ class Buyer(db_conn.DBConn):
             users_col = self.db.users
             result = users_col.find({"user_id": buyer_id})
             searching = list(result)
+            cnt = len(searching)
  
-            if len(searching) == 0:
+            if cnt == 0:
                 return error.error_non_exist_user_id(buyer_id)
             
             balance = None
@@ -152,8 +155,9 @@ class Buyer(db_conn.DBConn):
             users_col = self.db.user_store
             result = users_col.find({"store_id": store_id})
             searching = list(result)
+            cnt = len(searching)
 
-            if len(searching) == 0:
+            if cnt == 0:
                 return error.error_non_exist_store_id(store_id)
 
             seller_id = None
@@ -193,9 +197,10 @@ class Buyer(db_conn.DBConn):
                 "user_id": buyer_id, 
                 "balance": {"$gte": total_price}
             }
-            result = users_col.update_one(condition, {"$inc": {"balance": -total_price}}).modified_count
+            result = users_col.update_one(condition, {"$inc": {"balance": -total_price}})
+            cnt = result.modified_count
 
-            if result == 0:
+            if cnt == 0:
                 return error.error_not_sufficient_funds(order_id)
             
             
@@ -209,9 +214,10 @@ class Buyer(db_conn.DBConn):
             condition = {
                 "user_id": buyer_id, 
             }
-            result = users_col.update_one(condition, {"$inc": {"balance": total_price}}).modified_count
+            result = users_col.update_one(condition, {"$inc": {"balance": total_price}})
+            cnt = result.modified_count
 
-            if result == 0:
+            if cnt == 0:
                 return error.error_non_exist_user_id(buyer_id)
             
             
@@ -225,7 +231,8 @@ class Buyer(db_conn.DBConn):
                 "order_id": order_id
             }
             result = users_col.find(condition)
-            cnt = result.count_documents({})
+            searching = list(result)
+            cnt = len(searching)
             if cnt == 0:
                 return error.error_invalid_order_id(order_id)
             
@@ -237,7 +244,8 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.new_order_detail
             result = users_col.find(condition)
-            cnt = result.count_documents({})
+            searching = list(result)
+            cnt = len(searching)
 
             if cnt == 0:
                 return error.error_invalid_order_id(order_id)
@@ -260,12 +268,12 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.users
             result = users_col.find({"user_id": user_id})
-            searching = list(result)
+            cnt = result.count()
             
-            if len(searching) == 0:
+            if cnt == 0:
                 return error.error_authorization_fail()
 
-            for each in searching:
+            for each in result:
                 if each["password"] != password:
                     return error.error_authorization_fail()
 
