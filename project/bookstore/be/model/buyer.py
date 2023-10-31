@@ -106,7 +106,7 @@ class Buyer(db_conn.DBConn):
             #     (order_id,),
             # )
 
-            order_id = None
+            
             buyer_id = None
             store_id = None
 
@@ -118,8 +118,7 @@ class Buyer(db_conn.DBConn):
                 return error.error_invalid_order_id(order_id)
 
             for each in searching:
-                order_id = each["order_id"]
-                buyer_id = each["buyer_id"]
+                buyer_id = each["user_id"]
                 store_id = each["store_id"]
 
             if buyer_id != user_id:
