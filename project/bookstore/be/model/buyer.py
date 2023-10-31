@@ -34,12 +34,13 @@ class Buyer(db_conn.DBConn):
                 # )
                 users_col = self.db.stores
                 result = users_col.find({"store_id": store_id, "book_id": book_id})
-                if len(list(result)) == 0:
+                searching = list(result)
+                if len(searching) == 0:
                     return error.error_non_exist_book_id(book_id) + (order_id,)
 
                 stock_level = None
                 book_info = None
-                for each in result:
+                for each in searching:
                     stock_level = each["stock_level"]
                     book_info = each["book_info"]
                     
@@ -56,9 +57,8 @@ class Buyer(db_conn.DBConn):
                 # )
 
                 condition = {"store_id": store_id, "book_id": book_id, "stock_level": {"$gte": count}}
-                users_col.update_one(condition, {"$inc": {"stock_level": -count}})
-                result = list(users_col.find(condition))
-                if len(result) == 0:
+                counting = users_col.update_one(condition, {"$inc": {"stock_level": -count}}).modified_count
+                if counting == 0:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
                 # self.conn.execute(
@@ -112,11 +112,12 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.new_order
             result = users_col.find({"order_id": order_id})
+            searching = list(result)
 
-            if len(list(result)) == 0:
+            if len(searching) == 0:
                 return error.error_invalid_order_id(order_id)
 
-            for each in result:
+            for each in searching:
                 order_id = each["order_id"]
                 buyer_id = each["buyer_id"]
                 store_id = each["store_id"]
@@ -129,14 +130,15 @@ class Buyer(db_conn.DBConn):
             # )
             users_col = self.db.users
             result = users_col.find({"user_id": buyer_id})
+            searching = list(result)
  
-            if len(list(result)) == 0:
+            if len(searching) == 0:
                 return error.error_non_exist_user_id(buyer_id)
             
             balance = None
             password1 = None
 
-            for each in balance:
+            for each in searching:
                 balance = each["balance"]
                 password1 = each["password"]
 
@@ -150,13 +152,14 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.user_store
             result = users_col.find({"store_id": store_id})
+            searching = list(result)
 
-            if len(list(result)) == 0:
+            if len(searching) == 0:
                 return error.error_non_exist_store_id(store_id)
 
             seller_id = None
 
-            for each in result:
+            for each in searching:
                 seller_id = each["user_id"]
 
             if not self.user_id_exist(seller_id):
@@ -169,10 +172,10 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.new_order_detail
             result = users_col.find({"order_id": order_id})
-
+            searching = list(result)
             
             total_price = 0
-            for row in result:
+            for row in searching:
                 count = row["count"]
                 price = row["price"]
                 total_price = total_price + price * count
@@ -191,12 +194,12 @@ class Buyer(db_conn.DBConn):
                 "user_id": buyer_id, 
                 "balance": {"$gte": total_price}
             }
-            result = users_col.find(condition)
+            result = users_col.update_one(condition, {"$inc": {"balance": -total_price}}).modified_count
 
-            if len(list(result)) == 0:
+            if result == 0:
                 return error.error_not_sufficient_funds(order_id)
             
-            users_col.update_one(condition, {"$inc": {"balance": -total_price}})
+            
 
             # cursor = conn.execute(
             #     "UPDATE user set balance = balance + ?" "WHERE user_id = ?",
@@ -207,12 +210,12 @@ class Buyer(db_conn.DBConn):
             condition = {
                 "user_id": buyer_id, 
             }
-            result = users_col.find(condition)
+            result = users_col.update_one(condition, {"$inc": {"balance": total_price}}).modified_count
 
-            if len(list(result)) == 0:
+            if result == 0:
                 return error.error_non_exist_user_id(buyer_id)
             
-            users_col.update_one(condition, {"$inc": {"balance": total_price}})
+            
 
             # cursor = conn.execute(
             #     "DELETE FROM new_order WHERE order_id = ?", (order_id,)
@@ -223,8 +226,8 @@ class Buyer(db_conn.DBConn):
                 "order_id": order_id
             }
             result = users_col.find(condition)
-
-            if len(list(result)) == 0:
+            cnt = result.count_documents({})
+            if cnt == 0:
                 return error.error_invalid_order_id(order_id)
             
             users_col.delete_one(condition)
@@ -235,8 +238,9 @@ class Buyer(db_conn.DBConn):
 
             users_col = self.db.new_order_detail
             result = users_col.find(condition)
+            cnt = result.count_documents({})
 
-            if len(list(result)) == 0:
+            if cnt == 0:
                 return error.error_invalid_order_id(order_id)
             
             users_col.delete_one(condition)
