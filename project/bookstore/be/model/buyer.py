@@ -293,3 +293,73 @@ class Buyer(db_conn.DBConn):
             return 530, "{}".format(str(e))
 
         return 200, "ok"
+    
+
+    def search_books(self, search_method: str, 
+                     keywords: str, 
+                     whether_all: bool = True, 
+                     page_num: int = 1,
+                     page_limit: int = 20) -> (int, str):
+        '''
+        搜索图书
+
+        Inputs:
+        - search_method: 搜索方式，题目，标签，目录，内容等
+        - keywords: 搜索关键词
+        - whether_all: 是否为全站搜索
+        - page_num: 页数
+        - page_limit: 每一页限制的显示条数
+        '''
+
+    
+    def cancel_order(self, user_id: str, password: str, order_id: str) -> (int, str):
+        '''
+        取消订单
+
+        Inputs:
+        - user_id: 用户id
+        - password: 用户密码
+        - order_id: 需要取消的订单的id
+        '''
+
+
+    def search_order(self, user_id: str, password: str) -> (int, str):
+        '''
+        查询订单
+
+        Inputs:
+        - user_id: 用户id
+        - password: 用户密码
+        '''
+
+
+    def receive(self, user_id: str, password: str, order_id: str) -> (int, str):
+        '''
+        收货
+
+        需要考虑是否发货，是否到货，不发货或者不到货都不能收货
+        到货可能会有点难，需要考虑时间戳，到货也可以另外再写一个函数
+        就是在new_order_detail的每一条里面加入每一个动作的时间
+
+        Inputs:
+        - user_id: 用户id
+        - password: 用户密码
+        - order_id: 需要取消的订单的id
+        '''
+
+
+    def deliver(self, order_id) -> (int, str):
+        '''
+        发货
+
+        需要考虑订单是否付款，然后设置可能到货时间装装样子
+
+        Inputs:
+        - order_id: 订单的id
+        '''
+
+    
+    def reach(self, order_id) -> (int, str):
+        '''
+        到货
+        '''
