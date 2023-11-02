@@ -29,14 +29,19 @@ class Seller(db_conn.DBConn):
                 return error.error_exist_book_id(book_id)
 
             users_col = self.db.stores
-            
-            store1 = {
+
+            condition = {
                 "store_id": store_id,
-                "book_id": book_id,
-                "book_info": book_json_str,
-                "stock_level": stock_level
             }
-            users_col.insert_one(store1)
+
+            value = {
+                "book_id": book_id,
+                "stock_level": stock_level,
+                "book_info": book_json_str
+            }
+
+            users_col.update(condition, {"$push": {"books": value}})
+
         except sqlite.Error as e:
             return 528, "{}".format(str(e))
         except BaseException as e:
@@ -55,8 +60,13 @@ class Seller(db_conn.DBConn):
                 return error.error_non_exist_book_id(book_id)
             
             users_col = self.db.stores
-            condition = {"store_id": store_id, "book_id": book_id}
-            users_col.update_one(condition, {"$inc": {"stock_level": add_stock_level}})
+
+            condition = {
+                "store_id": store_id, 
+                "books.book_id": book_id 
+            }
+            
+            users_col.update(condition, {"$inc": {"books.stock_level": add_stock_level}})
 
         except sqlite.Error as e:
             return 528, "{}".format(str(e))
@@ -70,13 +80,14 @@ class Seller(db_conn.DBConn):
                 return error.error_non_exist_user_id(user_id)
             if self.store_id_exist(store_id):
                 return error.error_exist_store_id(store_id)
-            users_col = self.db.user_store
+            users_col = self.db.stores
 
-            # self.conn.execute(
-            #     "INSERT into user_store(store_id, user_id)" "VALUES (?, ?)",
-            #     (store_id, user_id),
-            # )
-            users_col.insert_one({"store_id": store_id, "user_id": user_id})
+            value = {
+                "store_id": store_id,
+                "user_id": user_id,
+                "books": [], # book中包括书的id，库存，信息
+            }
+            users_col.insert_one(value)
             
         except sqlite.Error as e:
             return 528, "{}".format(str(e))

@@ -11,7 +11,6 @@ class Buyer(db_conn.DBConn):
     
 
     def __init__(self):
-        # db_conn.DBConn.__init__(self)
         self.client = store.get_db_client()
         self.db = self.client.bookstore
 
@@ -27,50 +26,42 @@ class Buyer(db_conn.DBConn):
             uid = "{}_{}_{}".format(user_id, store_id, str(uuid.uuid1()))
 
             for book_id, count in id_and_count:
-                # cursor = self.conn.execute(
-                #     "SELECT book_id, stock_level, book_info FROM store "
-                #     "WHERE store_id = ? AND book_id = ?;",
-                #     (store_id, book_id),
-                # )
                 users_col = self.db.stores
-                result = users_col.find({"store_id": store_id, "book_id": book_id})
+                result = users_col.find({"store_id": store_id, "books.book_id": book_id})
                 searching = list(result)
                 if len(searching) == 0:
                     return error.error_non_exist_book_id(book_id) + (order_id,)
-
+                
+                # 提取需要的书和需要的数量
                 stock_level = None
                 book_info = None
                 for each in searching:
-                    stock_level = each["stock_level"]
-                    book_info = each["book_info"]
+                    for info in each["books"]:
+                        stock_level = info["stock_level"]
+                        book_info = info["book_info"]
                     
                 book_info_json = json.loads(book_info)
                 price = book_info_json.get("price")
 
+                # 判断数量是否满足需求
                 if stock_level < count:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
-                # cursor = self.conn.execute(
-                #     "UPDATE store set stock_level = stock_level - ? "
-                #     "WHERE store_id = ? and book_id = ? and stock_level >= ?; ",
-                #     (count, store_id, book_id, count),
-                # )
-
-                condition = {"store_id": store_id, "book_id": book_id, "stock_level": {"$gte": count}}
-                result = users_col.update_one(condition, {"$inc": {"stock_level": -count}})
+                # 如果满足需求则发货
+                condition = {"store_id": store_id, 
+                             "books.book_id": book_id, 
+                             "books.stock_level": {"$gte": count}
+                }
+                result = users_col.update_one(condition, {"$inc": {"books.stock_level": -count}})
 
                 cnt = result.modified_count
                 if cnt == 0:
                     return error.error_stock_level_low(book_id) + (order_id,)
 
-                # self.conn.execute(
-                #     "INSERT INTO new_order_detail(order_id, book_id, count, price) "
-                #     "VALUES(?, ?, ?, ?);",
-                #     (uid, book_id, count, price),
-                # )
-
-                users_col = self.db.new_order_detail
+                users_col = self.db.orders
                 value = {
+                    "user_id": user_id,
+                    "store_id": store_id,
                     "order_id": uid,
                     "book_id": book_id,
                     "count": count,
@@ -78,20 +69,6 @@ class Buyer(db_conn.DBConn):
                 }
                 users_col.insert_one(value)
 
-            # self.conn.execute(
-            #     "INSERT INTO new_order(order_id, store_id, user_id) "
-            #     "VALUES(?, ?, ?);",
-            #     (uid, store_id, user_id),
-            # )
-            users_col = self.db.new_order
-            value = {
-                "order_id": uid,
-                "store_id": store_id,
-                "user_id": user_id
-            }
-            users_col.insert_one(value)
-            
-            order_id = uid
         except sqlite.Error as e:
             logging.info("528, {}".format(str(e)))
             return 528, "{}".format(str(e)), ""
@@ -103,15 +80,12 @@ class Buyer(db_conn.DBConn):
 
     def payment(self, user_id: str, password: str, order_id: str) -> (int, str):
         try:
-            # cursor = conn.execute(
-            #     "SELECT order_id, user_id, store_id FROM new_order WHERE order_id = ?",
-            #     (order_id,),
-            # )
 
             buyer_id = None
             store_id = None
 
-            users_col = self.db.new_order
+            # 先找到payment的订单
+            users_col = self.db.orders
             result = users_col.find({"order_id": order_id})
             searching = list(result)
             cnt = len(searching)
@@ -119,16 +93,40 @@ class Buyer(db_conn.DBConn):
             if cnt == 0:
                 return error.error_invalid_order_id(order_id)
 
+            count = 0
+            price = 0
             for each in searching:
                 buyer_id = each["user_id"]
                 store_id = each["store_id"]
+                count = each["count"]
+                price = each["price"]
+
+            total_price = total_price + price * count
+                
 
             if buyer_id != user_id:
                 return error.error_authorization_fail()
 
-            # cursor = conn.execute(
-            #     "SELECT balance, password FROM user WHERE user_id = ?;", (buyer_id,)
-            # )
+            
+            users_col = self.db.stores
+            result = users_col.find({"store_id": store_id})
+            searching = list(result)
+            cnt = len(searching)
+
+            if cnt == 0:
+                return error.error_non_exist_store_id(store_id)
+            
+
+            seller_id = None
+
+            for each in searching:
+                seller_id = each["user_id"]
+
+            if not self.user_id_exist(seller_id):
+                return error.error_non_exist_user_id(seller_id)
+            
+            # 再找到该用户
+            
             users_col = self.db.users
             result = users_col.find({"user_id": buyer_id})
             searching = list(result)
@@ -137,6 +135,8 @@ class Buyer(db_conn.DBConn):
             if cnt == 0:
                 return error.error_non_exist_user_id(buyer_id)
             
+            searching = list(result)
+
             balance = None
             password1 = None
 
@@ -146,53 +146,11 @@ class Buyer(db_conn.DBConn):
 
             if password != password1:
                 return error.error_authorization_fail()
-
-            # cursor = conn.execute(
-            #     "SELECT store_id, user_id FROM user_store WHERE store_id = ?;",
-            #     (store_id,),
-            # )
-
-            users_col = self.db.user_store
-            result = users_col.find({"store_id": store_id})
-            searching = list(result)
-            cnt = len(searching)
-
-            if cnt == 0:
-                return error.error_non_exist_store_id(store_id)
-
-            seller_id = None
-
-            for each in searching:
-                seller_id = each["user_id"]
-
-            if not self.user_id_exist(seller_id):
-                return error.error_non_exist_user_id(seller_id)
-
-            # cursor = conn.execute(
-            #     "SELECT book_id, count, price FROM new_order_detail WHERE order_id = ?;",
-            #     (order_id,),
-            # )
-
-            users_col = self.db.new_order_detail
-            result = users_col.find({"order_id": order_id})
-            searching = list(result)
             
-            total_price = 0
-            for row in searching:
-                count = row["count"]
-                price = row["price"]
-                total_price = total_price + price * count
-
             if balance < total_price:
                 return error.error_not_sufficient_funds(order_id)
 
-            # cursor = conn.execute(
-            #     "UPDATE user set balance = balance - ?"
-            #     "WHERE user_id = ? AND balance >= ?",
-            #     (total_price, buyer_id, total_price),
-            # )
-
-            users_col = self.db.users
+            # 买家扣钱
             condition = {
                 "user_id": buyer_id, 
                 "balance": {"$gte": total_price}
@@ -203,14 +161,7 @@ class Buyer(db_conn.DBConn):
             if cnt == 0:
                 return error.error_not_sufficient_funds(order_id)
             
-            
-
-            # cursor = conn.execute(
-            #     "UPDATE user set balance = balance + ?" "WHERE user_id = ?",
-            #     (total_price, buyer_id),
-            # )
-
-           
+            # 卖家得到钱
             condition = {
                 "user_id": buyer_id, 
             }
@@ -219,38 +170,7 @@ class Buyer(db_conn.DBConn):
 
             if cnt == 0:
                 return error.error_non_exist_user_id(buyer_id)
-            
-            
-
-            # cursor = conn.execute(
-            #     "DELETE FROM new_order WHERE order_id = ?", (order_id,)
-            # )
-
-            users_col = self.db.new_order
-            condition = {
-                "order_id": order_id
-            }
-            result = users_col.find(condition)
-            searching = list(result)
-            cnt = len(searching)
-            if cnt == 0:
-                return error.error_invalid_order_id(order_id)
-            
-            users_col.delete_one(condition)
-
-            # cursor = conn.execute(
-            #     "DELETE FROM new_order_detail where order_id = ?", (order_id,)
-            # )
-
-            users_col = self.db.new_order_detail
-            result = users_col.find(condition)
-            searching = list(result)
-            cnt = len(searching)
-
-            if cnt == 0:
-                return error.error_invalid_order_id(order_id)
-            
-            users_col.delete_one(condition)
+        
 
         except sqlite.Error as e:
             return 528, "{}".format(str(e))
