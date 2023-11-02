@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f8f15d74-a398-43a4-807d-9b51ca2b7781" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/project/bookstore/.coverage" beforeDir="false" afterPath="$PROJECT_DIR$/project/bookstore/.coverage" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/bookstore.egg-info/PKG-INFO" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/bookstore.egg-info/SOURCES.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/bookstore.egg-info/dependency_links.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/bookstore.egg-info/top_level.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/app.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/buyer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/db_conn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/error.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/seller.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/store.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/model/user.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/serve.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/view/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/view/auth.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/view/buyer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/be/view/seller.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/auth.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/book.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/buyer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/new_buyer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/new_seller.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/access/seller.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/bench/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/bench/run.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/bench/session.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/bench/workload.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/conf.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/build/lib/fe/conftest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/bookstore/dist/bookstore-0.0.1-py3.9.egg" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2XcSoeBCmZXlBhBRt9FaWcyMZNt" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "E:/github/DataBase",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f8f15d74-a398-43a4-807d-9b51ca2b7781" name="Changes" comment="" />
+      <created>1698927052263</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1698927052263</updated>
+      <workItem from="1698927055809" duration="44000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
