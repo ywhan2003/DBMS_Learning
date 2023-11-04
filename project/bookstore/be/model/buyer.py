@@ -290,20 +290,56 @@ class Buyer(db_conn.DBConn):
 
     def search_books(self, search_method: str, 
                      keywords: str, 
-                     store: str = None, 
+                     store_id: None, 
                      page_num: int = 1,
                      page_limit: int = 20) -> (int, str):
         '''
         搜索图书
 
         Inputs:
-        - search_method: 搜索方式，题目，标签，目录，内容等
+        - search_method: 搜索方式，题目，标签, 内容等
         - keywords: 搜索关键词
-        - whether_all: 是否为全站搜索
+        - store_id: 是否为全站搜索
         - page_num: 页数
         - page_limit: 每一页限制的显示条数
         '''
-        return 200, "ok"
+        right_method = ["title", "tags", "content", "book_intro"]
+
+        try:
+            
+            # 判断搜索的方式是否合法
+            if not search_method in right_method:
+                return error.error_searching_method(search_method)
+            
+            # 选择文档集
+            users_col = self.db.stores
+            result = None
+
+            # 如果store_id是None，则全站搜索
+            if not store_id:
+
+                result = users_col.find(
+                    {"books": {"$elemMatch": {search_method: {'$regex': keywords}}}}
+                ).skip(page_limit*(page_num -1)).limit(page_limit)
+
+            # 反之，则在指定的店铺内搜索
+            else:
+                result = users_col.find(
+                    {"store_id": store_id, "books":{"$elemMatch": {search_method: {'$regex': keywords}}}}
+                ).skip(page_limit*(page_num - 1)).limit(page_limit)
+
+            # 判断是否搜到结果
+            if len(list(result)) == 0:
+                return error.error_contains_keywords(keywords)
+
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        
+        except BaseException as e:
+            return 530, "{}".format(str(e))
+        
+        return 200, 'ok'
+        
 
     
     def cancel_order(self, user_id: str, password: str, order_id: str) -> (int, str):
@@ -315,6 +351,64 @@ class Buyer(db_conn.DBConn):
         - password: 用户密码
         - order_id: 需要取消的订单的id
         '''
+        try:
+            user_col = self.db.users
+            stores_col = self.db.stores
+            order_col = self.db.history_orders
+
+            # user是否存在， 密码是否正确
+            result = user_col.find({"user_id":user_id})
+            user_searching = list(result)
+            
+            if len(user_searching) == 0:
+                return error.error_not_exist_user_id(user_id)
+
+            for each in user_searching:
+                if each["password"] != password:
+                    return error.error_authorization_fail()
+                
+            
+            result = order_col.find({"order_id":order_id})
+            order_searching = list(result)
+
+            if len(order_searching) == 0:
+                return error.error_not_exist_order(order_id)
+            
+            for each in order_searching:
+                # store_id = each['store_id']
+                if each['status'] >= 2:
+                    return error.error_can_not_cancel(order_id)
+
+
+    
+                elif each['status'] == 1:   
+                    store_id = each['store_id']
+
+                    for book in each['books']:
+
+                        stores_col.update_one(
+                            {"store_id":store_id, "books.book_id":book['book_id']}, 
+                            {"$inc":{"books.$.stock_level": book['count']}}
+                        )
+
+                        user_col.update_one(
+                            {"user_id":user_id},
+                            {"$inc":{"balance": book['price']*book['count']}}
+                        )
+                        # user_col.delete_one(
+                        #     {"user_id":user_id},
+                        #     {"$pull":{"order_id":order_id}}
+                        # )
+                        
+                order_col.delete_one({"order_id":order_id})
+                        
+                        
+        
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        except BaseException as e:
+            return 530, "{}".format(str(e))
+        return 200, 'ok'
 
 
     def search_order(self, user_id: str, password: str) -> (int, str):
@@ -325,6 +419,33 @@ class Buyer(db_conn.DBConn):
         - user_id: 用户id
         - password: 用户密码
         '''
+
+        try:
+            user_col = self.db.users
+            result = user_col.find({"user_id":user_id})
+            searching = list(result)
+            
+            if len(searching) == 0:
+                return error.error_exist_user_id(user_id)
+
+            for each in searching:
+                if each["password"] != password:
+                    return error.error_authorization_fail()
+                
+
+            user_col = self.db.history_orders
+                
+            orders = user_col.find({"user_id":user_id})
+            
+            if len(list(orders)) == 0:
+                return error.error_not_exist_order(user_id)
+
+
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        except BaseException as e:
+            return 530, "{}".format(str(e)) 
+        return 200, 'ok'
 
 
     def receive(self, user_id: str, password: str, order_id: str) -> (int, str):
@@ -340,20 +461,35 @@ class Buyer(db_conn.DBConn):
         - password: 用户密码
         - order_id: 需要取消的订单的id
         '''
+        try:
+            user_col = self.db.users
+            result = user_col.find({"user_id":user_id})
+            searching = list(result)
+            
+            if len(searching) == 0:
+                return error.error_exist_user_id(user_id)
+
+            for each in searching:
+                if each["password"] != password:
+                    return error.error_authorization_fail()
+                
+            user_col = self.db.history_orders
+            result = user_col.find({"order_id":order_id})
+            searching  = list(result)
+
+            if len(searching) == 0:
+                return error.error_not_exist_order(order_id)
 
 
-    def deliver(self, order_id) -> (int, str):
-        '''
-        发货
+            for each in searching:
+                if each['status'] != 2:
+                    return error.error_not_reach_order(order_id)
+                else:
+                    user_col.update_one({"order_id":order_id}, {"$set":{"status":3}})
 
-        需要考虑订单是否付款，然后设置可能到货时间装装样子
-
-        Inputs:
-        - order_id: 订单的id
-        '''
-
-    
-    def reach(self, order_id) -> (int, str):
-        '''
-        到货
-        '''
+        
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        except BaseException as e:
+            return 530, "{}".format(str(e))
+        return 200, 'ok'

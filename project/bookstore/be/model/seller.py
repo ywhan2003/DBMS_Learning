@@ -108,3 +108,46 @@ class Seller(db_conn.DBConn):
         except BaseException as e:
             return 530, "{}".format(str(e))
         return 200, "ok"
+    
+    def deliver(self, store_id, order_id) -> (int, str):
+        '''
+        发货
+        判断这家店是否存在
+        判断订单是否存在
+        需要考虑订单是否付款，然后设置可能到货时间装装样子
+
+        Inputs:
+        - order_id: 订单的id
+        '''
+
+        try:
+
+            user_col = self.db.history_orders
+            result = user_col.find({"store_id":store_id})
+            searching = list(result)
+
+            if len(searching) == 0:
+                return error.error_non_exist_store_id(store_id)
+            
+
+            # user_col = self.db.history_orders
+            result = user_col.find({"order_id":order_id})
+            searching = list(result)
+            
+            if len(searching) == 0:
+                return error.error_not_exist_order(order_id)
+            
+
+            for each in searching:
+                if each['status'] != 1:
+                    return error.error_not_pay_order(order_id)
+            
+                else:
+                    user_col.update_one({"store_id":store_id, "order_id":order_id}, {"$set":{"status":2}})
+
+
+        except sqlite.Error as e:
+            return 528, "{}".format(str(e))
+        except BaseException as e:
+            return 530, "{}".format(str(e))
+        return 200, "ok"
