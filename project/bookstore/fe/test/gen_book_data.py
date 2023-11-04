@@ -57,3 +57,17 @@ class GenBook:
         for item in self.buy_book_info_list:
             self.buy_book_id_list.append((item[0].id, item[1]))
         return ok, self.buy_book_id_list
+    
+
+    def gen_book_info(self) -> (bool, str, str):
+        self.__init_book_list__()
+        ok = True
+        book_db = book.BookDB()
+        rows = book_db.get_book_count()
+        book_id = random.randint(1, rows)
+        book_info = book_db.get_book_info(book_id, 1)
+        methods = ["title", "author", "content", "book_intro"]
+        method = random.choice(methods)
+        info = book_info[method]
+            
+        return ok, method, info

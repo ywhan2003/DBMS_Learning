@@ -49,3 +49,17 @@ class Buyer:
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
         # return r.content # '{"message":"non exist user id test_add_funds_1aae7281-7746-11ee-ba42-089798e7766d"}'
+
+    def search_books(self, search_method: str, 
+                     keywords: str, 
+                     store: str = None, 
+                     page_num: int = 1,
+                     page_limit: int = 20) -> (int, str):
+        json = {
+            "search_method": search_method,
+            "keywords": keywords
+        }
+        url = urljoin(self.url_prefix, "search_book")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
