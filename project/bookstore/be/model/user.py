@@ -66,8 +66,8 @@ class User(db_conn.DBConn):
                 "balance": 0,
                 "token": token,
                 "terminal": terminal,
-                "store_id": None,
-                "orders": []
+                "store_id": [],
+                "order_id": []
             } 
             self.users_col.insert_one(user1)
         except Exception as e:
