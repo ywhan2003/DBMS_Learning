@@ -9,12 +9,12 @@ error_code = {
     517: "stock level low, book id {}",
     518: "invalid order id {}",
     519: "not sufficient funds, order id {}",
-    520: "",
-    521: "",
-    522: "",
-    523: "",
-    524: "",
-    525: "",
+    520: "illegal searching method, illegal method {}",
+    521: "not exist book contains keywords, keywords {}",
+    522: "not exist orders, user_id {}",
+    523: "not pay the order, order_id {}",
+    524: "not reach the order , order_id {}",
+    525: "can not cancel the order, order_id {}",
     526: "",
     527: "",
     528: "",
@@ -63,3 +63,23 @@ def error_authorization_fail():
 
 def error_and_message(code, message):
     return code, message
+
+def error_searching_method(illegal_method):
+    return 520, error_code[520].format(illegal_method)
+
+def error_contains_keywords(keywords):
+    return 521, error_code[521].format(keywords)
+
+def error_not_exist_order(user_id):
+    return 522, error_code[522].format(user_id)
+
+
+def error_not_pay_order(order_id):
+    return 523, error_code[523].format(order_id)
+
+
+def error_not_reach_order(order_id):
+    return 524, error_code[524].format(order_id)
+
+def error_can_not_cancel(order_id):
+    return 525, error_code[525].format(order_id)
