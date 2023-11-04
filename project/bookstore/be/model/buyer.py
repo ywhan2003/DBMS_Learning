@@ -21,9 +21,9 @@ class Buyer(db_conn.DBConn):
         order_id = ""
         try:
             if not self.user_id_exist(user_id):
-                return error.error_non_exist_user_id(user_id) + (order_id,)
+                return error.error_non_exist_user_id(user_id) + (uid,)
             if not self.store_id_exist(store_id):
-                return error.error_non_exist_store_id(store_id) + (order_id,)
+                return error.error_non_exist_store_id(store_id) + (uid,)
             uid = "{}_{}_{}".format(user_id, store_id, str(uuid.uuid1()))
 
             books = []
@@ -40,7 +40,7 @@ class Buyer(db_conn.DBConn):
                 
                 searching = list(result)
                 if len(searching) == 0:
-                    return error.error_non_exist_book_id(book_id) + (order_id,)
+                    return error.error_non_exist_book_id(book_id) + (uid,)
 
                 stock_level = None
                 # book_info = None
@@ -54,7 +54,7 @@ class Buyer(db_conn.DBConn):
                 # price = book_info_json.get("price")
 
                 if stock_level < count:
-                    return error.error_stock_level_low(book_id) + (order_id,)
+                    return error.error_stock_level_low(book_id) + (uid,)
 
                 # cursor = self.conn.execute(
                 #     "UPDATE store set stock_level = stock_level - ? "
@@ -67,7 +67,7 @@ class Buyer(db_conn.DBConn):
 
                 cnt = result.modified_count
                 if cnt == 0:
-                    return error.error_stock_level_low(book_id) + (order_id,)
+                    return error.error_stock_level_low(book_id) + (uid,)
 
                 # self.conn.execute(
                 #     "INSERT INTO new_order_detail(order_id, book_id, count, price) "
@@ -91,7 +91,7 @@ class Buyer(db_conn.DBConn):
             
             users_col = self.db.history_orders
             value = {
-                "order_id": order_id,
+                "order_id": uid,
                 "user_id": user_id,
                 "store_id": store_id,
                 "books": books,
@@ -102,7 +102,7 @@ class Buyer(db_conn.DBConn):
             users_col.insert_one(value)
 
             users_col = self.db.users
-            users_col.update_one({"user_id": user_id}, {"$push": {"orders": order_id}})
+            users_col.update_one({"user_id": user_id}, {"$push": {"orders": uid}})
         except sqlite.Error as e:
             logging.info("528, {}".format(str(e)))
             return 528, "{}".format(str(e)), ""
@@ -110,7 +110,7 @@ class Buyer(db_conn.DBConn):
             logging.info("530, {}".format(str(e)))
             return 530, "{}".format(str(e)), ""
 
-        return 200, "ok", order_id
+        return 200, "ok", uid
 
     def payment(self, user_id: str, password: str, order_id: str) -> (int, str):
         try:
