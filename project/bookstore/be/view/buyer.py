@@ -62,3 +62,20 @@ def cancel_order():
     b = Buyer()
     code, message = b.cancel_order(user_id, password, order_id)
     return jsonify({"message": message}), code
+
+@bp_buyer.route("/search_order", methods=["POST"])
+def search_order():
+    user_id: str = request.json.get("user_id")
+    password: str = request.json.get("password")
+    b = Buyer()
+    code, message = b.search_order(user_id, password)
+    return jsonify({"message": message}), code
+
+@bp_buyer.route("/receive", methods=["POST"])
+def receive():
+    user_id: str = request.json.get("user_id")
+    password: str = request.json.get("password")
+    order_id: str = request.json.get("order_id")
+    b = Buyer()
+    code, message = b.receive(user_id, password, order_id)
+    return jsonify({"message": message}), code

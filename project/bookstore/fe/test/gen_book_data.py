@@ -65,9 +65,18 @@ class GenBook:
         book_db = book.BookDB()
         rows = book_db.get_book_count()
         book_id = random.randint(1, rows)
-        book_info = book_db.get_book_info(book_id, 1)
-        methods = ["title", "author", "content", "book_intro"]
+        book_info = book_db.get_book_info(book_id, 1)[0]
+        methods = ["title", "author", "content", "book_intro", "tags"]
         method = random.choice(methods)
-        info = book_info[method]
-            
+        if method == "title":
+            info = book_info.title
+        elif method == 'author':
+            info = book_info.author
+        elif method == 'content':
+            info = book_info.content
+        elif method == 'book_intro':
+            info = book_info.book_intro
+        elif method == 'tags':
+            info = book_info.tags
+                        
         return ok, method, info

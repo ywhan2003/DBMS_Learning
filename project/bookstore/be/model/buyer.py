@@ -290,7 +290,7 @@ class Buyer(db_conn.DBConn):
 
     def search_books(self, search_method: str, 
                      keywords: str, 
-                     store_id: None, 
+                     store_id: str = None, 
                      page_num: int = 1,
                      page_limit: int = 20) -> (int, str):
         '''
@@ -303,7 +303,7 @@ class Buyer(db_conn.DBConn):
         - page_num: 页数
         - page_limit: 每一页限制的显示条数
         '''
-        right_method = ["title", "tags", "content", "book_intro"]
+        right_method = ["title", "tags", "content", "book_intro", "author"]
 
         try:
             
@@ -316,7 +316,7 @@ class Buyer(db_conn.DBConn):
             result = None
 
             # 如果store_id是None，则全站搜索
-            if not store_id:
+            if store_id is None:
 
                 result = users_col.find(
                     {"books": {"$elemMatch": {search_method: {'$regex': keywords}}}}
