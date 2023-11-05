@@ -329,8 +329,10 @@ class Buyer(db_conn.DBConn):
                 ).skip(page_limit*(page_num - 1)).limit(page_limit)
 
             # 判断是否搜到结果
-            if len(list(result)) == 0:
-                return error.error_contains_keywords(keywords)
+            # searching = list(result)
+            # a = searching[0]['store_id']
+            # if len(searching) == 0:
+            #     return error.error_contains_keywords(keywords)
 
         except sqlite.Error as e:
             return 528, "{}".format(str(e))

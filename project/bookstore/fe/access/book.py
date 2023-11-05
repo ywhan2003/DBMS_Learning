@@ -68,7 +68,7 @@ class BookDB:
         #     (size, start),
         # )
         users_col = self.db.books
-        cursor = users_col.find().sort("book_id", pymongo.ASCENDING).skip(start).limit(size)
+        cursor = users_col.find({}).sort("book_id", pymongo.ASCENDING).skip(start).limit(size)
         for row in cursor:
             book = Book()
             book.id = row["book_id"]

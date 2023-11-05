@@ -7,7 +7,7 @@ from fe.access.book import Book
 import uuid
 
 
-class TestSearchOrder:
+class TestReceive:
     seller_id: str
     store_id: str
     buyer_id: str
@@ -65,3 +65,15 @@ class TestSearchOrder:
         self.buyer_id = self.buyer_id + "_x"
         code = self.buyer.search_order(self.buyer_id, self.buyer.password)
         assert code != 200
+
+
+    def test_not_reached(self):
+        code = self.buyer.add_funds(self.total_price)
+        assert code == 200
+        code = self.buyer.payment(self.order_id)
+        assert code == 200
+        # code = self.seller.deliver(self.store_id, self.order_id)
+        # assert code == 200
+        code = self.buyer.receive(self.buyer_id, self.password, self.order_id)
+        assert code != 200
+        
