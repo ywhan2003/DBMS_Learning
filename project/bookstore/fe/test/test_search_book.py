@@ -19,12 +19,12 @@ class TestSearchBook:
         ok, method, info = self.gen_book.gen_book_info()
         assert ok
         
-        code, _ = self.buyer.search_books(method, info)
+        code = self.buyer.search_books(method, info, None)
         assert code == 200
 
     def test_search_books_error_not_exist_book(self):
         ok, method, info = self.gen_book.gen_book_info()
         assert ok
         info += "_xx"
-        code, _ = self.buyer.search_books(method, info)
+        code = self.buyer.search_books(method, info)
         assert code != 200

@@ -57,9 +57,12 @@ class Buyer:
                      page_limit: int = 20) -> (int, str):
         json = {
             "search_method": search_method,
-            "keywords": keywords
+            "keywords": keywords,
+            "store": store,
+            "page_num": page_num,
+            "page_limit": page_limit
         }
-        url = urljoin(self.url_prefix, "search_book")
+        url = urljoin(self.url_prefix, "search_books")
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
@@ -71,6 +74,27 @@ class Buyer:
             "order_id": order_id
         }
         url = urljoin(self.url_prefix, "cancel_order")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+    
+    def search_order(self, user_id: str, password: str) -> (int, str):
+        json = {
+            "user_id": user_id,
+            "password": password
+        }
+        url = urljoin(self.url_prefix, "search_order")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+    
+    def receive(self, user_id: str, password: str, order_id: str) -> (int, str):
+        json = {
+            "user_id": user_id,
+            "password": password,
+            "order_id": order_id
+        }
+        url = urljoin(self.url_prefix, "receive")
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         return r.status_code

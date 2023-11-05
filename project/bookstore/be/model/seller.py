@@ -38,17 +38,19 @@ class Seller(db_conn.DBConn):
             book_intro = book_info.get("book_intro")
             content = book_info.get("content")
             price = book_info.get("price")
+            tags = book_info.get("tags")
 
 
             book = {
                 "book_id": book_id,
-                "book_name": book_name,
+                "title": book_name,
                 "author": author,
                 "publisher": publisher,
                 "book_intro": book_intro,
                 "content": content,
                 "stock_level": stock_level,
-                "price": price
+                "price": price,
+                "tags": tags
             }
 
             users_col.update_one({"store_id": store_id}, {"$push": {"books": book}})
@@ -131,7 +133,7 @@ class Seller(db_conn.DBConn):
             
 
             # user_col = self.db.history_orders
-            result = user_col.find({"order_id":order_id})
+            result = user_col.find({"order_id":order_id, "status": {"$ne": -1}})
             searching = list(result)
             
             if len(searching) == 0:
