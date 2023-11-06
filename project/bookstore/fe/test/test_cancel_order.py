@@ -7,6 +7,7 @@ from fe.test.gen_book_data import GenBook
 from fe.access.new_buyer import register_new_buyer
 from fe.access.book import Book
 import uuid
+from time import sleep
 
 
 class TestCancelOrder:
@@ -53,6 +54,11 @@ class TestCancelOrder:
 
     def test_authorization_error(self):
         self.buyer.password = self.buyer.password + "_x"
+        code = self.buyer.payment(self.order_id)
+        assert code != 200
+
+    def test_order_not_exist_error(self):
+        self.order_id = self.order_id + "_x"
         code = self.buyer.payment(self.order_id)
         assert code != 200
 
