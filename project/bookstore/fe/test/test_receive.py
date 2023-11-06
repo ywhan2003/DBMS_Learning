@@ -66,6 +66,17 @@ class TestReceive:
         code = self.buyer.search_order(self.buyer_id, self.buyer.password)
         assert code != 200
 
+    def test_order_not_exist_error(self):
+        code = self.buyer.add_funds(self.total_price)
+        assert code == 200
+        code = self.buyer.payment(self.order_id)
+        assert code == 200
+        code = self.seller.deliver(self.store_id, self.order_id)
+        assert code == 200
+        self.order_id = self.order_id + "_x"
+        code = self.buyer.receive(self.buyer_id, self.password, self.order_id)
+        assert code != 200
+
 
     def test_not_reached(self):
         code = self.buyer.add_funds(self.total_price)

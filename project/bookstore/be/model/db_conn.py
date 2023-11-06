@@ -10,6 +10,7 @@ class DBConn:
         self.db.users.create_index([("user_id", 1)], unique=True)
         self.db.stores.create_index([("store_id", 1)], unique=True)
         self.db.history_orders.create_index([("order_id", 1)], unique=True)
+        self.db.history_orders.create_index([("time", 1)], expireAfterSeconds=20)
         # self.db.user_store.create_index([("store_id", 1), ("user_id", 1)], unique=True)
 
         
