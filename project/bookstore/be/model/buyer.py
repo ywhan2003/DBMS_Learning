@@ -377,14 +377,21 @@ class Buyer(db_conn.DBConn):
                 return error.error_not_exist_order(order_id)
             
             for each in order_searching:
+                
                 # store_id = each['store_id']
                 if each['status'] >= 2:
                     return error.error_can_not_cancel(order_id)
 
 
-    
+                
                 elif each['status'] == 1:   
                     store_id = each['store_id']
+                    seller_id = None
+
+                    result = stores_col.find({"store_id": store_id})
+                    search = list(result)
+                    for each in search:
+                        seller_id = each["user_id"]
 
                     for book in each['books']:
 
@@ -396,6 +403,11 @@ class Buyer(db_conn.DBConn):
                         user_col.update_one(
                             {"user_id":user_id},
                             {"$inc":{"balance": book['price']*book['count']}}
+                        )
+
+                        user_col.update_one(
+                            {"user_id":seller_id},
+                            {"$inc":{"balance": -book['price']*book['count']}}
                         )
                         # user_col.delete_one(
                         #     {"user_id":user_id},
